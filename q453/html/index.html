@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Proj453 </title>
+	<script type="text/javascript" src="PaperJS/paper-full.js"></script>
+	<script type="text/javascript" src="proj453.js"></script>
+	<script type="text/paperscript" canvas="canvas">
+
+		var lineColour1 = "#bfbfff";
+		var lineColour2 = "#000000";
+		var lineStroke = 2;
+
+		var pointRadii = 3;
+		var pointColour = lineColour2;
+
+		var pointDistance = 20;
+
+
+		/* Function that draws multiples lattices side by side. */
+		function drawLattices(size, origin, pointCodes){
+			var offset = new Point(0,0);
+			var max = 20;
+
+			for(var i=0; i<pointCodes.length; i++){
+				drawLattice(size, origin + offset, getPoints(pointCodes[i]));
+				if((i+1) % max){
+					offset.x += pointDistance * (size.y + 1);
+				} else{
+					offset.x = 0;
+					offset.y += pointDistance * (size.x + 1);
+				}
+			}
+
+			/* function that translate the given number to a bunch of indexes
+			 *   based on its binary value */
+			function getPoints(n){
+				var points = [], index = 0, i = n;
+				while(n){
+					if(Bit.isSet(n, 0)) points.push(index);
+					index++; n = n >> 1;
+				}
+				// console.log(i, points, Bit.toBinary(i));
+				return points;
+			}
+
+			/* Function to draw a lattice and plot the points */
+			function drawLattice(size, origin, points){
+				lattice(size, origin);
+				var d1 = putDot(size, points[0], origin);
+				var d2 = putDot(size, points[1], origin);
+				var d3 = putDot(size, points[2], origin);
+				var d4 = putDot(size, points[3], origin);
+				connectDots(d1, d2, d3, d4);
+
+				/* Draws a XY lattice with mxn squares */
+				function lattice(size, origin){
+					for(var i=0; i<=size.y; i++) // Draw the column lines.
+						new Path.Line({
+							from: [origin.x + pointDistance * i, origin.y],
+							strokeColor: lineColour1, strokeWidth: lineStroke,
+							strokeCap: 'round',
+							to: [origin.x + pointDistance * i,
+								 origin.y + pointDistance * size.x],
+					});
+					for(var j=0; j<=size.x; j++) // Draw the row lines.
+						new Path.Line({
+							from: [origin.x, origin.y + pointDistance * j],
+							strokeColor: lineColour1, strokeWidth: lineStroke,
+							strokeCap: 'round',
+							to: [origin.x + pointDistance * size.y,
+								 origin.y + pointDistance * j],
+					});
+				}
+
+				/* A function that puts a dot at the index
+				 *	at the given position. */
+				function putDot(size, index, origin){
+					// Some math to do the offset calculation.
+					size += [1, 1];
+					var offset = new Point(index % size.y,
+						Math.floor(index / size.y));
+					var position = origin + (offset * pointDistance);
+
+					// Draw the dot and return its position.
+					new Path.Circle({
+						center: position,
+						radius: pointRadii,
+						fillColor: pointColour,
+						strokeColor: pointColour,
+					});
+					return position;
+				}
+
+				/* A function that will connects the dots together. */
+				function connectDots(d1, d2, d3, d4){
+					new Path.Line({
+						from: d1, to: d2,
+						strokeColor: lineColour2, strokeWidth: lineStroke,
+					});
+					new Path.Line({
+						from: d2, to: d3,
+						strokeColor: lineColour2, strokeWidth: lineStroke,
+					});
+					new Path.Line({
+						from: d3, to: d4,
+						strokeColor: lineColour2, strokeWidth: lineStroke,
+					});
+					new Path.Line({
+						from: d4, to: d1,
+						strokeColor: lineColour2, strokeWidth: lineStroke,
+					});
+				}
+			}
+		}
+
+		// Add 500 lattices
+		pointsCode = [];
+		for(var i=0; i<500; i++)
+			if(Bit.countSet(i) == 4) pointsCode.push(i);
+		console.log(pointsCode);
+
+		// Draw the points on a 2x2 lattice
+		var origin = new Point(10, 10);
+		var size = new Point(2, 2);
+		drawLattices(size, origin, pointsCode);
+	</script>
+</head>
+<body>
+	<style>
+		html, body{min-height: 100%}
+		#canvas{
+			padding: 10px;
+			/*width: 100%;*/
+			/*height: auto;*/
+		}
+	</style>
+	<canvas id="canvas" resize="true"></canvas>
+</body>
+</html>
